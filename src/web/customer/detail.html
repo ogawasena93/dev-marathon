@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>顧客詳細</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <h2 class="mb-4">顧客詳細</h2>
+    <table class="table table-bordered">
+      <tbody>
+        <tr><th>ID</th><td id="id"></td></tr>
+        <tr><th>会社名</th><td><input id="company_name" class="form-control"></td></tr>
+        <tr><th>業種</th><td><input id="industry" class="form-control"></td></tr>
+        <tr><th>連絡先</th><td><input id="contact" class="form-control"></td></tr>
+        <tr><th>所在地</th><td><input id="location" class="form-control"></td></tr>
+        <tr><th>作成日時</th><td id="created_at"></td></tr>
+        <tr><th>更新日時</th><td id="updated_at"></td></tr>
+      </tbody>
+    </table>
+    <a href="/customer/list.html" class="btn btn-secondary">戻る</a>
+    <button id="deleteButton" class="btn btn-danger ml-2">削除</button>
+    <button id="updateButton" class="btn btn-primary ml-2">更新</button>
+  </div>
+
+  <script type="module">
+    import config from '../config.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const id = parseInt(params.get('id'), 10); // 数値に変換
+
+    fetch(`${config.apiUrl}/customers`)
+      .then(res => res.json())
+      .then(data => {
+        const customer = data.find(c => c.customer_id === id);
+
+        if (!customer) {
+          alert('指定された顧客が見つかりませんでした。');
+          window.location.href = '/customer/list.html';
+          return;
+        }
+
+        document.getElementById('id').textContent = customer.customer_id;
+        document.getElementById('company_name').value = customer.company_name;
+        document.getElementById('industry').value = customer.industry;
+        document.getElementById('contact').value = customer.contact;
+        document.getElementById('location').value = customer.location;
+        const formatDate = (value) => value ? new Date(value).toLocaleString('ja-JP') : '―';
+
+        document.getElementById('created_at').textContent = formatDate(customer.created_date);
+        document.getElementById('updated_at').textContent = formatDate(customer.updated_date);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('顧客情報の取得に失敗しました。');
+      });
+    
+  document.getElementById('deleteButton').addEventListener('click', () => {
+  alert('削除していいですか？'); // ← 課題の指定通り、confirmではなくalertを使用
+
+  fetch(`${config.apiUrl}/customers/${id}`, {
+    method: 'DELETE'
+  })
+  .then(res => {
+    if (res.ok) {
+      alert('削除しました');
+      window.location.href = '/customer/list.html';
+    } else {
+      alert('削除に失敗しました');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('通信エラーが発生しました');
+  });
+});
+
+document.getElementById('updateButton').addEventListener('click', () => {
+  alert('更新していいですか？');
+
+  const updatedData = {
+    company_name: document.getElementById('company_name').value,
+    industry: document.getElementById('industry').value,
+    contact: document.getElementById('contact').value,
+    location: document.getElementById('location').value
+  };
+
+  fetch(`${config.apiUrl}/customers/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(updatedData)
+  })
+  .then(res => {
+    if (res.ok) {
+      alert('更新しました');
+      window.location.href = '/customer/list.html';
+    } else {
+      alert('更新に失敗しました');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('通信エラーが発生しました');
+  });
+});
+
+  </script>
+</body>
+</html>
